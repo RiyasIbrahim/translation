@@ -213,15 +213,15 @@ export const ProjectList = (props) => {
                                 <TableCell component="th" scope="row">
                                     <Link to={"/project/" + project['project_id']}>{project['project_id']}</Link>
                                 </TableCell>
-                                <TableCell align="right"> {users[project['created_by']]['name']} </TableCell>
+                                <TableCell align="right"> {users[project['created_by']] && users[project['created_by']]['name']} </TableCell>
                                 <TableCell align="right">
                                     <NativeSelect
-                                        disabled={(users[currUser] && users[currUser]['canAdd'] == 1) ? false : true}
+                                        disabled={(users[currUser] && users[currUser]['isAdminOrManager'] == 1) ? false : true}
                                         defaultValue={project['assigned_to']}
                                         onChange={(event) => {handleAssigneeChange(event, project['project_id'])}}
                                     >
                                         <option value={-1} key={-1}>Choose an assignee</option>
-                                        {Object.keys(users).map((id) => (
+                                        {Object.keys(users).filter((id) => users[id]['isAdminOrManager'] == 0).map((id) => (
                                             <option value={id} key={id}>{users[id]['name']}</option>
                                         ))}
                                     </NativeSelect>
@@ -233,7 +233,7 @@ export const ProjectList = (props) => {
             </TableContainer>
         }
         {/* Button for creating new project */}
-        <Button variant="outlined" onClick={handleOpen} disabled={(users[currUser] && users[currUser]['canAdd'] == 1) ? false : true}>Add New Project</Button>
+        <Button variant="outlined" onClick={handleOpen} disabled={(users[currUser] && users[currUser]['isAdminOrManager'] == 1) ? false : true}>Add New Project</Button>
         {/* Modal used for creating new project */}
         <Modal
             open={open}
@@ -274,7 +274,7 @@ export const ProjectList = (props) => {
                         onChange={(event) => {setAssignee(event.target.value)}}
                     >
                         <option value={-1} key={-1}>Choose an assignee</option>
-                        {Object.keys(users).map((id) => (
+                        {Object.keys(users).filter((id) => users[id] == 0).map((id) => (
                             <option value={id} key={id}>{users[id]['name']}</option>
                         ))}
                     </NativeSelect>

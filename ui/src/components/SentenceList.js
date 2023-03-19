@@ -108,27 +108,29 @@ export const SentenceList = (props) => {
             </div>
         </header>
         {/* Sentences */}
-        <div style={{padding: '60px'}}>
-            {sentences.map((sentence, index) => 
-                <div key={sentence['sentence_id']} className="sentence-container">
-                    <div className="leftPane">
-                        {/* Left side: Original Sentences */}
-                        <p>{sentence['original_sentence']}</p>
+        {sentences.length == 0 ? <p>No Sentence available</p> : (
+            <div style={{padding: '60px'}}>
+                {sentences.map((sentence, index) => 
+                    <div key={sentence['sentence_id']} className="sentence-container">
+                        <div className="leftPane">
+                            {/* Left side: Original Sentences */}
+                            <p>{sentence['original_sentence']}</p>
+                        </div>
+                        <div className="rightPane">
+                            {/* Right side: Translated sentences */}
+                            {/* ReactTransliterate is used for transliterating the sentence */}
+                            <ReactTransliterate
+                                renderComponent={(props) => <textarea {...props} />}
+                                value={sentence['translated_sentence']}
+                                onChangeText={text => handleChange(text, index)}
+                                lang={projectId.substring(0, 2)}
+                                containerStyles={{color: "black"}}
+                            />
+                        </div>
                     </div>
-                    <div className="rightPane">
-                        {/* Right side: Translated sentences */}
-                        {/* ReactTransliterate is used for transliterating the sentence */}
-                        <ReactTransliterate
-                            renderComponent={(props) => <textarea {...props} />}
-                            value={sentence['translated_sentence']}
-                            onChangeText={text => handleChange(text, index)}
-                            lang={projectId.substring(0, 2)}
-                            containerStyles={{color: "black"}}
-                        />
-                    </div>
-                </div>
-            )}
-        </div>
+                )}
+            </div>
+        )}
     </div>
     );
 }

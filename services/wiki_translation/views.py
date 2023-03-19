@@ -41,9 +41,15 @@ def project_view(request):
                 request.data["created_by"] = user.id
                 serializer = ProjectSerializer(data=request.data)
                 if (serializer.is_valid()):
-                    project = serializer.save()
-                    #After saving the project, add all sentences that project should have
-                    add_sentence_for_project(project)
+                    try:
+                        project = serializer.save()
+                        #After saving the project, add all sentences that project should have
+                        add_sentence_for_project(project)
+                    except Exception as e:
+                        #Delete the create project
+                        Project.delete(project)
+                        #Return with error message to show the cause of failure
+                        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                     #Return the saved project and return with return code 201
                     return Response(serializer.data, status = status.HTTP_201_CREATED)
                 #In case of invalid object, get Bad Request 400
@@ -82,6 +88,9 @@ def single_project_view(request, project_id):
         #return the project with return code 200
         return Response(serializer.data)
     if (request.method == 'PATCH'):
+        if ((not user.is_superuser) and (not user.groups.filter(name='Manager').exists())):
+            #If user is of group Annotator, user cannot update the project
+            return Response({'error': 'Not enough permission'}, status = status.HTTP_403_FORBIDDEN)
         try:
             serializer = ProjectSerializer(project, data = request.data, partial=True)
             if (serializer.is_valid()):
@@ -234,8 +243,8 @@ def getUsers(request):
     for user in users:
         all_user_data[user.id] = {
             "name": user.username,
-            #canAdd is need to disable the button in the frontend(react)
-            "canAdd": 1 if user.is_superuser or user.groups.filter(name='Manager').exists() else 0
+            #isAdminOrManager is need to disable the button in the frontend(react)
+            "isAdminOrManager": 1 if user.is_superuser or user.groups.filter(name='Manager').exists() else (0 if user.groups.filter(name='Annotator').exists() else 2)
         }
     
     user_data = {
@@ -250,8 +259,9 @@ def getUsers(request):
 def add_sentence_for_project(project : Project):
     summary_list = getSummaryForTitles(project.article_title)
     for summary in summary_list:
-        sentence = Sentence(project = project, original_sentence = summary.strip(), translated_sentence = '')
-        try:
-            sentence.save()
-        except IntegrityError as e:
-            return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        if (len(summary.strip()) > 0):
+            sentence = Sentence(project = project, original_sentence = summary.strip(), translated_sentence = '')
+            try:
+                sentence.save()
+            except IntegrityError as e:
+                return Response({'error': str(e)}, status=status.HTTP_400_BAD_REQUEST)
