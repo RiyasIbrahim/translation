@@ -123,7 +123,7 @@ def sentences_view(request, project_id):
             return Response({'error': 'Not enough permission'}, status = status.HTTP_403_FORBIDDEN)
     except Project.DoesNotExist as e:
         #Returns 404 as the Project is not present or it is not available for the user
-        return Response(status = status.HTTP_404_NOT_FOUND)
+        return Response({'error': str(e)},status = status.HTTP_404_NOT_FOUND)
     
     if (request.method == 'GET'):
         #Get the sentence. Here we are not checking for authorization as we have already done it on Project
@@ -153,7 +153,7 @@ def single_sentence_view(request, sentence_id):
     try:
         #Get the sentence with sentence id
         sentence = Sentence.objects.get(sentence_id = sentence_id)
-    except Sentence.DoesNotExist:
+    except Sentence.DoesNotExist as e:
         #Returns 404 as the Sentence is not present
         return Response({'error': str(e)}, status = status.HTTP_404_NOT_FOUND)
     
