@@ -79,9 +79,9 @@ def single_project_view(request, project_id):
         #Else return 403
         else:
             return Response({'error': 'Not enough permission'}, status = status.HTTP_403_FORBIDDEN)
-    except project.DoesNotExist:
+    except Project.DoesNotExist as e:
         #Returns 404 as the Project is not present or it is not available for the user
-        return Response(status = status.HTTP_404_NOT_FOUND)
+        return Response({'error': str(e)},status = status.HTTP_404_NOT_FOUND)
     
     if (request.method == 'GET'):
         serializer = ProjectSerializer(project)
@@ -121,7 +121,7 @@ def sentences_view(request, project_id):
         #Else return 403
         else:
             return Response({'error': 'Not enough permission'}, status = status.HTTP_403_FORBIDDEN)
-    except project.DoesNotExist:
+    except Project.DoesNotExist as e:
         #Returns 404 as the Project is not present or it is not available for the user
         return Response(status = status.HTTP_404_NOT_FOUND)
     
@@ -153,9 +153,9 @@ def single_sentence_view(request, sentence_id):
     try:
         #Get the sentence with sentence id
         sentence = Sentence.objects.get(sentence_id = sentence_id)
-    except sentence.DoesNotExist:
+    except Sentence.DoesNotExist:
         #Returns 404 as the Sentence is not present
-        return Response(status = status.HTTP_404_NOT_FOUND)
+        return Response({'error': str(e)}, status = status.HTTP_404_NOT_FOUND)
     
     user = request.user
     project_id = sentence.project
@@ -172,7 +172,7 @@ def single_sentence_view(request, sentence_id):
         #Else return 403
         else:
             return Response({'error': 'Not enough permission'}, status = status.HTTP_403_FORBIDDEN)
-    except project.DoesNotExist:
+    except Project.DoesNotExist:
         #Returns 403 as the Project is not available for the user
         return Response({'error': 'Not enough permission'}, status = status.HTTP_403_FORBIDDEN)
     
